@@ -60,7 +60,7 @@
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>Fluid</strong>
+      <strong>Rx</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -157,7 +157,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="An elegant Material-Design theme for Hexo">
+            <span class="h2" id="subtitle" title="生死由命，富贵在天～">
               
             </span>
 
@@ -192,19 +192,22 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/12/07/hello-world/" target="_self">
-          Hello World
+        <a href="/2020/10/09/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" target="_self">
+          关于垃圾收集器
         </a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2021/12/07/hello-world/" target="_self">
+        <a href="/2020/10/09/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/" target="_self">
           
           
             
           
-          Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Quick
+          垃圾收集器
+现代 JVM 的类型繁多，最主流的四个垃圾收集器分别是：Serial 收集器（常用于单 CPU 环境）、Throughput（或者 Parallel）收集器、Concurrent 收集器（CMS）和 G1 收集器。
+
+1.分代收集器
+“虽然实现的细节千差万别，但所有的垃圾收集器都遵循了同一个方式，即根据情况将堆划分成不同的代（Generation）。这些代被称为“老年代”（Old Ge
         </a>
       </p>
 
@@ -212,12 +215,308 @@ Quick
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2021-12-07 16:26" pubdate>
-              2021-12-07
+            <time datetime="2020-10-09 17:31" pubdate>
+              2020-10-09
             </time>
           </div>
         
         
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/">垃圾收集器</a>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/10/09/%E7%BC%96%E8%AF%91%E5%99%A8%E8%B0%83%E4%BC%98/" target="_self">
+          关于编译器调优
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/10/09/%E7%BC%96%E8%AF%91%E5%99%A8%E8%B0%83%E4%BC%98/" target="_self">
+          
+          
+            
+          
+          编译器调优1.编译线程​    当方法（或者循环）适合编译时，就会进入到编译队列。队列由一个或多个后台线程处理。即编译过程是异步的，这使得代码正在编译时，程序也能持续执行。
+编译队列不严格遵守先进先出的原则：调用计数次数越多的方法拥有更高的优先级（保证更重要部分代码优先编译），这也是导致PrintCompilation输出中的ID为乱序的另一个原因。
+不同编译器默认开启编译线程数：
+
+
+
+编译器
+
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-10-09 17:31" pubdate>
+              2020-10-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/06/09/%E5%85%B3%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%B0%8F%E7%BB%93/" target="_self">
+          关于数据序列化的小结
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/06/09/%E5%85%B3%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%B0%8F%E7%BB%93/" target="_self">
+          
+          
+            
+          
+          关于数据序列化的小结不同系统间的数据交换可以通过基于文本的例如XML、JSON等，而在Java进程间的交换数据，通常就是通过序列化，本文为序列化相关优化总结。
+
+“JDK 提供了默认的序列化对象机制，以实现 Serializable 或 Externalizable 接口。实际上，默认序列化的性能还有提升的空间，但此时进行过早的优化的确不太明智。特定的序列化和反序列化代码需要很多时间编写，而且也比
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-06-09 19:28" pubdate>
+              2020-06-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%BA%8F%E5%88%97%E5%8C%96/">序列化</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/05/26/ES%20%E6%93%8D%E4%BD%9C%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93/" target="_self">
+          ES 操作简单总结
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/05/26/ES%20%E6%93%8D%E4%BD%9C%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93/" target="_self">
+          
+          
+            
+          
+          ES 操作简单总结一 简述
+此篇总结基于在当前最新版本(7.15.2)
+ES的result API 分为不同的请求类型对应不同操作
+
+PUT​    /index_name 创建/修改索引
+​    /index_name/_doc/{id} 创建文档  —创建不指定id,则默认随机
+POST
+​    /index_name/_doc/{id} 创建/修改文档
+DELETE 
+​    删除索引
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-26 14:12" pubdate>
+              2020-05-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/elasticsearch/">elasticsearch</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2019/08/11/WireGuard%20%E6%9C%8D%E5%8A%A1%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_self">
+          WireGuard 服务建记录
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2019/08/11/WireGuard%20%E6%9C%8D%E5%8A%A1%E5%BB%BA%E8%AE%B0%E5%BD%95/" target="_self">
+          
+          
+            
+          
+          WireGuard 服务建记录环境12系统:Debian 10默认内核:linux-headers-4.19.0-14-amd64
+
+准备工作12345678910111213# 查看当前内核版本uname -r# 安装过程需要的软件包(已装跳过)sudo apt updatesudo apt install apt-transport-https vim -y# 搜索内核sudo apt sea
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2019-08-11 09:12" pubdate>
+              2019-08-11
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/linux/">linux</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/linux/">linux</a>
+            
+              <a href="/tags/WireGuard/">WireGuard</a>
+            
+              <a href="/tags/VPN/">VPN</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2018/05/26/Linux%E8%AE%BE%E7%BD%AEswap/" target="_self">
+          Linux设置swap
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2018/05/26/Linux%E8%AE%BE%E7%BD%AEswap/" target="_self">
+          
+          
+            
+          
+          Linux设置swap1、创建一个 文件作为swap区123# 名字为/swapfile1  大小为bs*count = 1024*2000000=2G，count代表的是大小，这里是2Gdd if=/dev/zero of=/swapfile1 bs=1024 count=2000000
+
+2、将其转化为swap文件1mkswap /swapfile1
+
+3、将其改为只有root权限才能修改12
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2018-05-26 14:12" pubdate>
+              2018-05-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/linux/">linux</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/linux/">linux</a>
+            
+              <a href="/tags/swap/">swap</a>
+            
+          </div>
         
       </div>
     </article>
@@ -269,11 +568,21 @@ Quick
 
   <footer class="text-center mt-5 py-3">
   <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+     <a href="https://imxudaye.github.io" target="_blank" rel="nofollow noopener"><span>RxのTreasure Box</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
   </div>
   
 
   
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        蜀ICP备2021026699号
+      </a>
+    </span>
+    
+  </div>
+
 
   
 </footer>
