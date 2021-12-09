@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="📝">
+  <meta name="author" content="Rx">
+  <meta name="keywords" content="">
+  <meta name="description" content="编译器调优1.编译线程​    当方法（或者循环）适合编译时，就会进入到编译队列。队列由一个或多个后台线程处理。即编译过程是异步的，这使得代码正在编译时，程序也能持续执行。 编译队列不严格遵守先进先出的原则：调用计数次数越多的方法拥有更高的优先级（保证更重要部分代码优先编译），这也是导致PrintCompilation输出中的ID为乱序的另一个原因。 不同编译器默认开启编译线程数：    编译器">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于编译器调优">
+<meta property="og:url" content="http://example.com/2020/10/09/%E7%BC%96%E8%AF%91%E5%99%A8%E8%B0%83%E4%BC%98/index.html">
+<meta property="og:site_name" content="RxのTreasure Box">
+<meta property="og:description" content="编译器调优1.编译线程​    当方法（或者循环）适合编译时，就会进入到编译队列。队列由一个或多个后台线程处理。即编译过程是异步的，这使得代码正在编译时，程序也能持续执行。 编译队列不严格遵守先进先出的原则：调用计数次数越多的方法拥有更高的优先级（保证更重要部分代码优先编译），这也是导致PrintCompilation输出中的ID为乱序的另一个原因。 不同编译器默认开启编译线程数：    编译器">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-10-09T09:31:56.000Z">
+<meta property="article:modified_time" content="2021-12-09T07:33:44.191Z">
+<meta property="article:author" content="Rx">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>关于编译器调优 - RxのTreasure Box</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Rx</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="关于编译器调优">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-10-09 17:31" pubdate>
+        2020年10月9日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.7k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      5 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">关于编译器调优</h1>
+            
+            <div class="markdown-body">
+              <h3 id="编译器调优"><a href="#编译器调优" class="headerlink" title="编译器调优"></a>编译器调优</h3><h4 id="1-编译线程"><a href="#1-编译线程" class="headerlink" title="1.编译线程"></a>1.编译线程</h4><p>​    当方法（或者循环）适合编译时，就会进入到编译队列。队列由一个或多个后台线程处理。即编译过程是异步的，这使得代码正在编译时，程序也能持续执行。</p>
+<p><u><strong>编译队列不严格遵守先进先出的原则</strong></u>：调用计数次数越多的方法拥有更高的优先级（保证更重要部分代码优先编译），这也是导致PrintCompilation输出中的ID为乱序的另一个原因。</p>
+<p>不同编译器默认开启编译线程数：</p>
+<table>
+<thead>
+<tr>
+<th align="center">编译器</th>
+<th align="center">默认开启编译线程数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">client编译器</td>
+<td align="center">1个</td>
+</tr>
+<tr>
+<td align="center">server编译器</td>
+<td align="center">2个</td>
+</tr>
+<tr>
+<td align="center"><br />分层编译</td>
+<td align="center">默认开启多个client和server线程<br />线程数依据一个略微复杂的等式而定<br />包括目标平台CPU数取双对数之后的数值</td>
+</tr>
+</tbody></table>
+<p>编译器的线程数可通过参数 <code>-XX:CICompilerCount=N</code>调整</p>
+<h4 id="2-内联"><a href="#2-内联" class="headerlink" title="2.内联"></a>2.内联</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Point</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> x, y;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getX</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> x; &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setX</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i)</span>  </span>&#123; x = i; &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">Point p = getPoint();<br>p.setX(p.getX() * <span class="hljs-number">2</span>);<br></code></pre></td></tr></table></figure>
+
+<p>对于上述setter、getter的调用，在编译过后的代码本质上执行的是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">Point p = getPoint();<br>p.x = p.x * <span class="hljs-number">2</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这就是内联。</p>
+<p>现在的JVM通常会使用内联代码的方式执行方法，即默认开启内联。</p>
+<blockquote>
+<p>“方法是否内联取决于它有多热以及它的大小。JVM 依据内部计算来判定方法是否是热点（譬如，调用很频繁）；是否是热点并不直接与任何调优参数相关。如果方法因调用频繁而可以内联，那只有在它的字节码小于 325 字节时（或 -XX:MaxFreqInlineSize=N 所设定的任意值）才会内联。否则，只有方法很小时，即小于 35 字节（或 -XX:MaxInlineSize=N 所设定的任意值）时才会内联。”</p>
+<p>摘录来自: [美] 奥克斯（Oaks,S.）. “Java性能权威指南。” </p>
+</blockquote>
+<h4 id="3-逃逸分析"><a href="#3-逃逸分析" class="headerlink" title="3.逃逸分析"></a>3.逃逸分析</h4><p>在开启逃逸分析（-XX:+DoEscapeAnalysis，默认为 true）的情况下，server编译器会执行一些非常激进的优化措施。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Factorial</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> BigInteger factorial;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> n;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Factorial</span><span class="hljs-params">(<span class="hljs-keyword">int</span> n)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.n = n;<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> BigInteger <span class="hljs-title">getFactorial</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (factorial == <span class="hljs-keyword">null</span>)<br>            factorial = ...;<br>        <span class="hljs-keyword">return</span> factorial;<br>    &#125;<br>&#125;<br><br>ArrayList&lt;BigInteger&gt; list = <span class="hljs-keyword">new</span> ArrayList&lt;BigInteger&gt;();<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">100</span>; i++) &#123;<br>    Factorial factorial = <span class="hljs-keyword">new</span> Factorial(i);<br>    list.add(factorial.getFactorial());<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>在上述代码中，factorial 对象只在循环中引用；没有任何其他代码可以访问该对象。因此，JVM 会毫不犹豫地对这个对象进行一系列优化。</p>
+<ul>
+<li><input disabled="" type="checkbox"> 当调用 getFactorial() 时，没必要获得同步锁。</li>
+<li><input disabled="" type="checkbox"> 没必要在内存中保存 n；可以在寄存器中保存该值。同样，factorial 也可以保存在寄存器中。</li>
+<li><input disabled="" type="checkbox"> 事实上，根本就不需要分配实际的 factorial 对象；可以只追踪这个对象的个别字段。</li>
+</ul>
+<blockquote>
+<p>“此类优化非常复杂：虽然这个例子非常简单，但此类优化可能会伴随更复杂的代码。由于所用的代码不同，并不是所有的优化都有必要使用。但逃逸分析可以决定哪些优化是可能的，并决定编译后的代码中哪些是必要的改变。</p>
+<p>逃逸分析默认开启。极少数情况下，它会出错，在此类情况下关闭它会变得更快或更稳定。如果你发现了这种情况，最好的应对行为就是简化相关代码：代码越简单越好。（不过如果是 bug，则应该发送报告。）”</p>
+<p>摘录来自: [美] 奥克斯（Oaks,S.）. “Java性能权威指南。”</p>
+</blockquote>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/JVM/">JVM</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/10/09/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">关于垃圾收集器</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/09/%E5%85%B3%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%B0%8F%E7%BB%93/">
+                        <span class="hidden-mobile">关于数据序列化的小结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://imxudaye.github.io" target="_blank" rel="nofollow noopener"><span>RxのTreasure Box</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        蜀ICP备2021026699号
+      </a>
+    </span>
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

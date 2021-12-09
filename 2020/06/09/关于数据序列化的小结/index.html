@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="📝">
+  <meta name="author" content="Rx">
+  <meta name="keywords" content="">
+  <meta name="description" content="关于数据序列化的小结不同系统间的数据交换可以通过基于文本的例如XML、JSON等，而在Java进程间的交换数据，通常就是通过序列化，本文为序列化相关优化总结。  “JDK 提供了默认的序列化对象机制，以实现 Serializable 或 Externalizable 接口。实际上，默认序列化的性能还有提升的空间，但此时进行过早的优化的确不太明智。特定的序列化和反序列化代码需要很多时间编写，而且也比">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于数据序列化的小结">
+<meta property="og:url" content="http://example.com/2020/06/09/%E5%85%B3%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%B0%8F%E7%BB%93/index.html">
+<meta property="og:site_name" content="RxのTreasure Box">
+<meta property="og:description" content="关于数据序列化的小结不同系统间的数据交换可以通过基于文本的例如XML、JSON等，而在Java进程间的交换数据，通常就是通过序列化，本文为序列化相关优化总结。  “JDK 提供了默认的序列化对象机制，以实现 Serializable 或 Externalizable 接口。实际上，默认序列化的性能还有提升的空间，但此时进行过早的优化的确不太明智。特定的序列化和反序列化代码需要很多时间编写，而且也比">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-09T11:28:56.000Z">
+<meta property="article:modified_time" content="2021-12-09T07:32:44.152Z">
+<meta property="article:author" content="Rx">
+<meta property="article:tag" content="序列化">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>关于数据序列化的小结 - RxのTreasure Box</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Rx</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="关于数据序列化的小结">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-06-09 19:28" pubdate>
+        2020年6月9日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.4k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      11 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">关于数据序列化的小结</h1>
+            
+            <div class="markdown-body">
+              <h3 id="关于数据序列化的小结"><a href="#关于数据序列化的小结" class="headerlink" title="关于数据序列化的小结"></a>关于数据序列化的小结</h3><p>不同系统间的数据交换可以通过基于文本的例如XML、JSON等，而在Java进程间的交换数据，通常就是通过序列化，本文为序列化相关优化总结。</p>
+<blockquote>
+<p>“JDK 提供了默认的序列化对象机制，以实现 Serializable 或 Externalizable 接口。实际上，默认序列化的性能还有提升的空间，但此时进行过早的优化的确不太明智。特定的序列化和反序列化代码需要很多时间编写，而且也比默认的序列化代码更难维护。编写正确的序列化代码会有一些棘手，试图优化代码也会增加出错的风险。”</p>
+<p>摘录来自: [美] 奥克斯（Oaks,S.）. “Java性能权威指南。”  </p>
+</blockquote>
+<h4 id="1-transient字段"><a href="#1-transient字段" class="headerlink" title="1.transient字段"></a>1.transient字段</h4><p>​    一般情况下，对象内属性越少，序列化的性能改进代价就越小。将字段标记为transient，默认该字段就不会序列化了。</p>
+<blockquote>
+<p>文中代码皆引自《Java性能权威指南》</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StockPriceHistoryImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">StockPriceHistory</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> String symbol;<br>    <span class="hljs-keyword">protected</span> SortedMap&lt;Date, StockPrice&gt; prices = <span class="hljs-keyword">new</span> TreeMap&lt;&gt;();<br>    <span class="hljs-keyword">protected</span> Date firstDate;<br>    <span class="hljs-keyword">protected</span> Date lastDate;<br>    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> needsCalc = <span class="hljs-keyword">true</span>;<br>    <span class="hljs-keyword">protected</span> BigDecimal highPrice;<br>    <span class="hljs-keyword">protected</span> BigDecimal lowPrice;<br>    <span class="hljs-keyword">protected</span> BigDecimal averagePrice;<br>    <span class="hljs-keyword">protected</span> BigDecimal stdDev;<br>    <span class="hljs-keyword">private</span> Map&lt;BigDecimal, ArrayList&lt;Date&gt;&gt; histogram;<br>    ....<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">StockPriceHistoryImpl</span><span class="hljs-params">(String s, Date firstDate, Date lastDate)</span> </span>&#123;<br>        prices = ....<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>​    在上述代码当中，存在着一种延迟加载的情况，当构造此StockPriceHistoryImpl对象时，会创建类型为SortedMap的对象prices，而当调用字段的getter方法时 才会去计算该字段的实际值（lazy）,此类情况下，在满足业务需求的前提下，就可以给延迟加载的字段增加 transient标记 ，优化性能。</p>
+<h4 id="2-覆盖默认的序列化"><a href="#2-覆盖默认的序列化" class="headerlink" title="2.覆盖默认的序列化"></a>2.覆盖默认的序列化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Point</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> x;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> y;<br>    ....<br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">writeObject</span><span class="hljs-params">(ObjectOutputStream oos)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        oos.defaultWriteObject();<br>        oos.writeInt(x);<br>        oos.writeInt(y);<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readObject</span><span class="hljs-params">(ObjectInputStream ois)</span></span><br><span class="hljs-function">                                <span class="hljs-keyword">throws</span> IOException, ClassNotFoundException </span>&#123;<br>        ois.defaultReadObject();<br>        x = ois.readInt();<br>        y = ois.readInt();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>以上代码中的writeObject为序列化时调用 ， readObject为反序列化时调用</p>
+</blockquote>
+<p>针对不同场景，可以考虑重写方法体覆盖对应调用，以优化序列化/反序列化性能。</p>
+<h4 id="3-压缩序列化数据"><a href="#3-压缩序列化数据" class="headerlink" title="3.压缩序列化数据"></a>3.压缩序列化数据</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StockPriceHistoryCompress</span></span><br><span class="hljs-class">        <span class="hljs-keyword">implements</span> <span class="hljs-title">StockPriceHistory</span>, <span class="hljs-title">Serializable</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">byte</span>[] zippedPrices;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> SortedMap&lt;Date, StockPrice&gt; prices;<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">writeObject</span><span class="hljs-params">(ObjectOutputStream out)</span></span><br><span class="hljs-function">                <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        <span class="hljs-keyword">if</span> (zippedPrices == <span class="hljs-keyword">null</span>) &#123;<br>            makeZippedPrices();<br>        &#125;<br>        out.defaultWriteObject();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readObject</span><span class="hljs-params">(ObjectInputStream in)</span></span><br><span class="hljs-function">                <span class="hljs-keyword">throws</span> IOException,  ClassNotFoundException </span>&#123;<br>        in.defaultReadObject();<br>        unzipPrices();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">makeZippedPrices</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        ByteArrayOutputStream baos = <span class="hljs-keyword">new</span> ByteArrayOutputStream();<br>        GZIPOutputStream zip = <span class="hljs-keyword">new</span> GZIPOutputStream(baos);<br>        ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(<br>                <span class="hljs-keyword">new</span> BufferedOutputStream(zip));<br>        oos.writeObject(prices);<br>        oos.close();<br>        zip.close();<br>        zippedPrices = baos.toByteArray();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unzipPrices</span><span class="hljs-params">()</span></span><br><span class="hljs-function">                <span class="hljs-keyword">throws</span> IOException, ClassNotFoundException </span>&#123;<br>        ByteArrayInputStream bais = <span class="hljs-keyword">new</span> ByteArrayInputStream(zippedPrices);<br>        GZIPInputStream zip = <span class="hljs-keyword">new</span> GZIPInputStream(bais);<br>        ObjectInputStream ois = <span class="hljs-keyword">new</span> ObjectInputStream(<br>                <span class="hljs-keyword">new</span> BufferedInputStream(zip));<br>        prices = (SortedMap&lt;Date, StockPrice&gt;) ois.readObject();<br>        ois.close();<br>        zip.close();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>以上代码中示例，在数据序列化之后进行压缩处理，使得在网络中传输更快，以达到性能优化效果。</p>
+<h4 id="4-追踪对象复制"><a href="#4-追踪对象复制" class="headerlink" title="4.追踪对象复制"></a>4.追踪对象复制</h4><p>![image-20211206150055240](/Users/xuxiuhong/Library/Application Support/typora-user-images/image-20211206150055240.png)</p>
+<blockquote>
+<p>上图是一个简化版本的 map。JVM 默认先序列化 Node A 的原生数据字段，然后递归调用 Node B 的 writeObject()（接着是 Node C）。Node B 也会序列化它自己的原生数据字段，然后递归序列化它上级 Node 的字段。</p>
+<p>但是请注意——Node B 上级节点 Node A 已经被序列化，怎么办？对象序列化的代码很智能：它会意识到这一点，并且不会再次序列化 Node A 的数据。相反，它只会在先前序列化的数据中添加一个对象引用。</p>
+<p>追踪上一级对象从而递归所有对象，会对序列化的性能有少许影响。但正如 Point 数组的例子所示，这是无法避免的：必须追踪上一级序列化的对象以便正确恢复对象引用。不过，可以通过压缩对象引用来进行智能优化，从而在对象反序列化时易于重建。</p>
+<p>不同的集类处理这个问题的方式有所不同。比如 TreeMap，它只是遍历树然后序列化键值，丢弃了键之间的所有关系（也就是它们的排列顺序）。在反序列化时，readObject() 会重新排列数据并生成树。虽然排序对象听起来代价很昂贵，但实际并非如此：对 10 000 只股票而言，整个过程要比默认的序列化快 20%，默认机制需要追踪所有的对象引用。</p>
+</blockquote>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%BA%8F%E5%88%97%E5%8C%96/">序列化</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/10/09/%E7%BC%96%E8%AF%91%E5%99%A8%E8%B0%83%E4%BC%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">关于编译器调优</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/05/26/ES%20%E6%93%8D%E4%BD%9C%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93/">
+                        <span class="hidden-mobile">ES 操作简单总结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://imxudaye.github.io" target="_blank" rel="nofollow noopener"><span>RxのTreasure Box</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        蜀ICP备2021026699号
+      </a>
+    </span>
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
