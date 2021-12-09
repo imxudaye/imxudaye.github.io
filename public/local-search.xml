@@ -135,6 +135,33 @@
   
   
   <entry>
+    <title>自建windows激活服务器</title>
+    <link href="/2018/09/26/%E8%87%AA%E5%BB%BAwindows%E6%BF%80%E6%B4%BB%E6%9C%8D%E5%8A%A1%E5%99%A8/"/>
+    <url>/2018/09/26/%E8%87%AA%E5%BB%BAwindows%E6%BF%80%E6%B4%BB%E6%9C%8D%E5%8A%A1%E5%99%A8/</url>
+    
+    <content type="html"><![CDATA[<h3 id="自建windows激活服务器"><a href="#自建windows激活服务器" class="headerlink" title="自建windows激活服务器"></a>自建windows激活服务器</h3><h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><blockquote><p>Windows系统中能够通过KMS进行激活的一般称为VL版,即VOLUME授权版。我们可以自行搭建KMS激活服务器，实现每180天一次的自动激活，使得系统一直保持激活状态。这次就跟大家分享一下如何利用Docker搭建KMS服务器，并演示如何利用我们自己的KMS服务器激活Windows操作系统与Microsoft Office。</p></blockquote><h4 id="KMS搭建操作步骤"><a href="#KMS搭建操作步骤" class="headerlink" title="KMS搭建操作步骤"></a>KMS搭建操作步骤</h4><ol><li><p>拉取镜像</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">docker pull luodaoyi/kms-server<br></code></pre></td></tr></table></figure></li><li><p>创建启动容器</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">docker run -itd -p 1688:1688 --name kms luodaoyi/kms-server<br></code></pre></td></tr></table></figure></li><li><p>防火墙开放端口</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">firewall-cmd --zone=public --add-port=1688/tcp --permanent<br></code></pre></td></tr></table></figure></li></ol><h4 id="激活步骤"><a href="#激活步骤" class="headerlink" title="激活步骤"></a>激活步骤</h4><h5 id="–激活windows"><a href="#–激活windows" class="headerlink" title="–激活windows"></a>–激活windows</h5><ol><li><p>先确认系统版本，<code>设置-系统-关于</code>  或者命令窗口执行 <code>wmic os get caption</code></p></li><li><p>打开 <strong><a href="https://url.zeruns.tech/kms_key">https://url.zeruns.tech/kms_key</a></strong>  ，查找获取对应版本的key， 例如：<strong>NRG8B-VKK3Q-CXVCJ-9G2XF-6Q84J</strong></p></li><li><p>管理员身份打开命令窗口，依次执行如下命令</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> ip:port为你部署的KMS服务地址 ， 例如123.123.123.123:1688</span><br>slmgr /skms ip:port <br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash"> key为对应版本的key</span><br>slmgr /ipk NRG8B-VKK3Q-CXVCJ-9G2XF-6Q84J<br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash">自动激活操作</span><br>slmgr /ato<br></code></pre></td></tr></table></figure></li></ol><h5 id="–激活Microsoft-Office"><a href="#–激活Microsoft-Office" class="headerlink" title="–激活Microsoft Office"></a>–激活Microsoft Office</h5><p>首先先确认下我们的Office是否为VOL版，方法如下：</p><p>​    <strong>管理员身份运行命令提示符，输入 <code>cd C:\Program Files\Microsoft Office\Office16</code> 切换目录 （这里请根据您自己的Office版本更改相应路径），再输入 <code>cscript ospp.vbs /dstatus</code> 。可以看到这里有VL字样即为VOL版</strong></p><p>开始激活：</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash">这是默认安装目录，如果有自定义目录请酌情调整</span><br>cd C:\Program Files\Microsoft Office\Office16<br><br>cscript ospp.vbs /sethst:nas.zeruns.tech<br><br>cscript ospp.vbs /act<br><span class="hljs-meta">#</span><span class="bash">最后看到Product activation successful字样即为激活成功</span><br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>Windows</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Windows</tag>
+      
+      <tag>KMS</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Linux设置swap</title>
     <link href="/2018/05/26/Linux%E8%AE%BE%E7%BD%AEswap/"/>
     <url>/2018/05/26/Linux%E8%AE%BE%E7%BD%AEswap/</url>
