@@ -16,22 +16,21 @@
   <meta name="description" content="📝">
   <meta name="author" content="Rx">
   <meta name="keywords" content="">
-  <meta name="description" content="WireGuard 服务建记录环境12系统:Debian 10默认内核:linux-headers-4.19.0-14-amd64  准备工作12345678910111213# 查看当前内核版本uname -r# 安装过程需要的软件包(已装跳过)sudo apt updatesudo apt install apt-transport-https vim -y# 搜索内核sudo apt sea">
+  <meta name="description" content="自建windows激活服务器前言 Windows系统中能够通过KMS进行激活的一般称为VL版,即VOLUME授权版。我们可以自行搭建KMS激活服务器，实现每180天一次的自动激活，使得系统一直保持激活状态。这次就跟大家分享一下如何利用Docker搭建KMS服务器，并演示如何利用我们自己的KMS服务器激活Windows操作系统与Microsoft Office。  KMS搭建操作步骤 拉取镜像 1d">
 <meta property="og:type" content="article">
-<meta property="og:title" content="WireGuard 服务建记录">
-<meta property="og:url" content="http://example.com/2019/08/11/WireGuard%20%E6%9C%8D%E5%8A%A1%E5%BB%BA%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:title" content="自建windows激活服务器">
+<meta property="og:url" content="http://example.com/2018/09/26/%E8%87%AA%E5%BB%BAwindows%E6%BF%80%E6%B4%BB%E6%9C%8D%E5%8A%A1%E5%99%A8/index.html">
 <meta property="og:site_name" content="RxのTreasure Box">
-<meta property="og:description" content="WireGuard 服务建记录环境12系统:Debian 10默认内核:linux-headers-4.19.0-14-amd64  准备工作12345678910111213# 查看当前内核版本uname -r# 安装过程需要的软件包(已装跳过)sudo apt updatesudo apt install apt-transport-https vim -y# 搜索内核sudo apt sea">
+<meta property="og:description" content="自建windows激活服务器前言 Windows系统中能够通过KMS进行激活的一般称为VL版,即VOLUME授权版。我们可以自行搭建KMS激活服务器，实现每180天一次的自动激活，使得系统一直保持激活状态。这次就跟大家分享一下如何利用Docker搭建KMS服务器，并演示如何利用我们自己的KMS服务器激活Windows操作系统与Microsoft Office。  KMS搭建操作步骤 拉取镜像 1d">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2019-08-11T01:12:57.000Z">
-<meta property="article:modified_time" content="2021-12-09T07:32:22.476Z">
+<meta property="article:published_time" content="2018-09-26T15:12:56.000Z">
+<meta property="article:modified_time" content="2021-12-09T08:10:34.286Z">
 <meta property="article:author" content="Rx">
-<meta property="article:tag" content="linux">
-<meta property="article:tag" content="WireGuard">
-<meta property="article:tag" content="VPN">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="KMS">
 <meta name="twitter:card" content="summary_large_image">
   
-  <title>WireGuard 服务建记录 - RxのTreasure Box</title>
+  <title>自建windows激活服务器 - RxのTreasure Box</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
 
@@ -177,7 +176,7 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="WireGuard 服务建记录">
+            <span class="h2" id="subtitle" title="自建windows激活服务器">
               
             </span>
 
@@ -187,8 +186,8 @@
   
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2019-08-11 09:12" pubdate>
-        2019年8月11日 上午
+      <time datetime="2018-09-26 23:12" pubdate>
+        2018年9月26日 晚上
       </time>
     </span>
   
@@ -198,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.5k 字
+      984 字
     </span>
   
 
@@ -207,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      5 分钟
+      3 分钟
     </span>
   
 
@@ -236,29 +235,34 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">WireGuard 服务建记录</h1>
+            <h1 style="display: none">自建windows激活服务器</h1>
             
             <div class="markdown-body">
-              <h1 id="WireGuard-服务建记录"><a href="#WireGuard-服务建记录" class="headerlink" title="WireGuard 服务建记录"></a>WireGuard 服务建记录</h1><h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs elixir">系统<span class="hljs-symbol">:Debian</span> <span class="hljs-number">10</span><br>默认内核<span class="hljs-symbol">:linux-headers-</span><span class="hljs-number">4.19</span>.0<span class="hljs-number">-14</span>-amd64<br></code></pre></td></tr></table></figure>
+              <h3 id="自建windows激活服务器"><a href="#自建windows激活服务器" class="headerlink" title="自建windows激活服务器"></a>自建windows激活服务器</h3><h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><blockquote>
+<p>Windows系统中能够通过KMS进行激活的一般称为VL版,即VOLUME授权版。我们可以自行搭建KMS激活服务器，实现每180天一次的自动激活，使得系统一直保持激活状态。这次就跟大家分享一下如何利用Docker搭建KMS服务器，并演示如何利用我们自己的KMS服务器激活Windows操作系统与Microsoft Office。</p>
+</blockquote>
+<h4 id="KMS搭建操作步骤"><a href="#KMS搭建操作步骤" class="headerlink" title="KMS搭建操作步骤"></a>KMS搭建操作步骤</h4><ol>
+<li><p>拉取镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">docker pull luodaoyi/kms-server<br></code></pre></td></tr></table></figure></li>
+<li><p>创建启动容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">docker run -itd -p 1688:1688 --name kms luodaoyi/kms-server<br></code></pre></td></tr></table></figure></li>
+<li><p>防火墙开放端口</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">firewall-cmd --zone=public --add-port=1688/tcp --permanent<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="激活步骤"><a href="#激活步骤" class="headerlink" title="激活步骤"></a>激活步骤</h4><h5 id="–激活windows"><a href="#–激活windows" class="headerlink" title="–激活windows"></a>–激活windows</h5><ol>
+<li><p>先确认系统版本，<code>设置-系统-关于</code>  或者命令窗口执行 <code>wmic os get caption</code></p>
+</li>
+<li><p>打开 <strong><a target="_blank" rel="noopener" href="https://url.zeruns.tech/kms_key">https://url.zeruns.tech/kms_key</a></strong>  ，查找获取对应版本的key， 例如：<strong>NRG8B-VKK3Q-CXVCJ-9G2XF-6Q84J</strong></p>
+</li>
+<li><p>管理员身份打开命令窗口，依次执行如下命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> ip:port为你部署的KMS服务地址 ， 例如123.123.123.123:1688</span><br>slmgr /skms ip:port <br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash"> key为对应版本的key</span><br>slmgr /ipk NRG8B-VKK3Q-CXVCJ-9G2XF-6Q84J<br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash">自动激活操作</span><br>slmgr /ato<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h5 id="–激活Microsoft-Office"><a href="#–激活Microsoft-Office" class="headerlink" title="–激活Microsoft Office"></a>–激活Microsoft Office</h5><p>首先先确认下我们的Office是否为VOL版，方法如下：</p>
+<p>​    <strong>管理员身份运行命令提示符，输入 <code>cd C:\Program Files\Microsoft Office\Office16</code> 切换目录 （这里请根据您自己的Office版本更改相应路径），再输入 <code>cscript ospp.vbs /dstatus</code> 。可以看到这里有VL字样即为VOL版</strong></p>
+<p>开始激活：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash">这是默认安装目录，如果有自定义目录请酌情调整</span><br>cd C:\Program Files\Microsoft Office\Office16<br><br>cscript ospp.vbs /sethst:nas.zeruns.tech<br><br>cscript ospp.vbs /act<br><span class="hljs-meta">#</span><span class="bash">最后看到Product activation successful字样即为激活成功</span><br></code></pre></td></tr></table></figure>
 
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> 查看当前内核版本</span><br>uname -r<br><span class="hljs-meta">#</span><span class="bash"> 安装过程需要的软件包(已装跳过)</span><br>sudo apt update<br>sudo apt install apt-transport-https vim -y<br><span class="hljs-meta">#</span><span class="bash"> 搜索内核</span><br>sudo apt search linux-image<br><span class="hljs-meta">#</span><span class="bash"> 安装5.10</span><br>sudo apt-get install linux-image-5.10.0-0.bpo.9-amd64<br><span class="hljs-meta">#</span><span class="bash"> 卸载原来的内核</span><br>sudo apt-get remove linux-headers-4.19.0-14-amd64<br><span class="hljs-meta">#</span><span class="bash"> 重启</span><br>sudo reboot<br></code></pre></td></tr></table></figure>
 
-<h2 id="安装WireGuard服务端"><a href="#安装WireGuard服务端" class="headerlink" title="安装WireGuard服务端"></a>安装WireGuard服务端</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> 添加backports 源</span><br>sudo sh -c &quot;echo &#x27;deb https://deb.debian.org/debian buster-backports main contrib non-free&#x27; &gt; /etc/apt/sources.list.d/buster-backports.list&quot;<br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash"> 安装软件包</span><br>sudo apt update<br>sudo apt -t buster-backports install wireguard -y<br><span class="hljs-meta"></span><br><span class="hljs-meta">#</span><span class="bash"> 配置服务端</span><br>cd /etc/wireguard<br>umask 077<br><span class="hljs-meta">#</span><span class="bash"><span class="hljs-comment"># 生成配置需要的密钥和公钥</span></span><br>wg genkey | tee privatekey | wg pubkey &gt; publickey<br><span class="hljs-meta">#</span><span class="bash"><span class="hljs-comment"># 编辑服务端配置文件 ， 内容如下</span></span><br>sudo vim /etc/wireguard/wg0.conf<br>	<br></code></pre></td></tr></table></figure>
-
-<h3 id="服务端配置文件内容"><a href="#服务端配置文件内容" class="headerlink" title="服务端配置文件内容"></a>服务端配置文件内容</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-section">[Interface]</span><br><span class="hljs-comment"># wireguard 内网服务器地址</span><br><span class="hljs-attr">Address</span> = <span class="hljs-number">192.168</span>.<span class="hljs-number">5.1</span>/<span class="hljs-number">32</span><br><span class="hljs-attr">SaveConfig</span> = <span class="hljs-literal">true</span><br><span class="hljs-attr">PostUp</span> = iptables -A FORWARD -i wg0 -j ACCEPT<span class="hljs-comment">; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE</span><br><span class="hljs-attr">PostDown</span> = iptables -D FORWARD -i wg0 -j ACCEPT<span class="hljs-comment">; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE</span><br><span class="hljs-comment"># wireguard 监听端口</span><br><span class="hljs-attr">ListenPort</span> = <span class="hljs-number">12345</span> <br><span class="hljs-comment"># wireguard 生成的服务端密钥</span><br><span class="hljs-attr">PrivateKey</span> = KDGU6q5EG2Pv1ayJHIqAlmG2hGklF9fJ0ZGCp09GJXk=<br></code></pre></td></tr></table></figure>
-
-<h3 id="防火墙配置"><a href="#防火墙配置" class="headerlink" title="防火墙配置"></a>防火墙配置</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo ufw allow 12345/udp<br></code></pre></td></tr></table></figure>
-
-<h3 id="服务启停"><a href="#服务启停" class="headerlink" title="服务启停"></a>服务启停</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo systemctl enable wg-quick@wg0<br><br>sudo systemctl start wg-quick@wg0<br><br>sudo systemctl status wg-quick@wg0<br><br>sudo systemctl stop wg-quick@wg0<br></code></pre></td></tr></table></figure>
-
-<h3 id="启动成功后查看"><a href="#启动成功后查看" class="headerlink" title="启动成功后查看"></a>启动成功后查看</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sudo wg<br><br>sudo ip a show wg0<br></code></pre></td></tr></table></figure>
-
-<h2 id="客户端安装（Debian）"><a href="#客户端安装（Debian）" class="headerlink" title="客户端安装（Debian）"></a>客户端安装（Debian）</h2><h3 id="wireguard安装"><a href="#wireguard安装" class="headerlink" title="wireguard安装"></a>wireguard安装</h3><p>​        等同服务端软件包安装    </p>
-<h3 id="客户端配置"><a href="#客户端配置" class="headerlink" title="客户端配置"></a>客户端配置</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-section">[Interface]</span><br><span class="hljs-attr">PrivateKey</span> = 客户端私钥<br><span class="hljs-attr">Address</span> = <span class="hljs-number">192.168</span>.<span class="hljs-number">5.2</span>/<span class="hljs-number">32</span><br><span class="hljs-attr">DNS</span> = <span class="hljs-number">192.168</span>.<span class="hljs-number">5.1</span><br> <br><span class="hljs-section">[Peer]</span><br><span class="hljs-attr">PublicKey</span> = 服务端公钥<br><span class="hljs-attr">AllowedIPs</span> = <span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span>/<span class="hljs-number">0</span><br><span class="hljs-attr">Endpoint</span> = 服务端外网ip:服务端配置监听端口<br><br></code></pre></td></tr></table></figure>
-
-<h3 id="增加服务端配置"><a href="#增加服务端配置" class="headerlink" title="增加服务端配置"></a>增加服务端配置</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-section">[Peer]</span><br><span class="hljs-attr">PublicKey</span> = 客户端公钥<br><span class="hljs-attr">AllowedIPs</span> = <span class="hljs-number">192.168</span>.<span class="hljs-number">5.2</span>/<span class="hljs-number">32</span><br></code></pre></td></tr></table></figure>
-
-<h2 id="Enjoy～"><a href="#Enjoy～" class="headerlink" title="Enjoy～"></a>Enjoy～</h2>
             </div>
             <hr>
             <div>
@@ -267,7 +271,7 @@
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/linux/">linux</a>
+                      <a class="hover-with-bg" href="/categories/Windows/">Windows</a>
                     
                   </div>
                 
@@ -275,11 +279,9 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/linux/">linux</a>
+                      <a class="hover-with-bg" href="/tags/Windows/">Windows</a>
                     
-                      <a class="hover-with-bg" href="/tags/WireGuard/">WireGuard</a>
-                    
-                      <a class="hover-with-bg" href="/tags/VPN/">VPN</a>
+                      <a class="hover-with-bg" href="/tags/KMS/">KMS</a>
                     
                   </div>
                 
@@ -296,9 +298,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2020/05/26/ES%20%E6%93%8D%E4%BD%9C%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93/">
+                      <a href="/2019/08/11/WireGuard%20%E6%9C%8D%E5%8A%A1%E5%BB%BA%E8%AE%B0%E5%BD%95/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">ES 操作简单总结</span>
+                        <span class="hidden-mobile">WireGuard 服务建记录</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -306,8 +308,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2018/09/26/%E8%87%AA%E5%BB%BAwindows%E6%BF%80%E6%B4%BB%E6%9C%8D%E5%8A%A1%E5%99%A8/">
-                        <span class="hidden-mobile">自建windows激活服务器</span>
+                      <a href="/2018/05/26/Linux%E8%AE%BE%E7%BD%AEswap/">
+                        <span class="hidden-mobile">Linux设置swap</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
