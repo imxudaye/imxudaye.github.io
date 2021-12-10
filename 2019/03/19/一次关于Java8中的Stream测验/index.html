@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="📝">
+  <meta name="author" content="Rx">
+  <meta name="keywords" content="">
+  <meta name="description" content="一次关于Java8中的Stream测验前言： ​    在业务代码当中，常常会有多个List或者Map之间的交集差集并集需求，在Java8流式stream出现之前，往往都是以嵌套循环达到目的。此文记录测试在不同写法之间，在串行流与并行流操作之间的性能差异  先上代码： 12345&#x2F;&#x2F; 定义对象class Student &amp;#123;    private String name;    priva">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次关于Java8中的Stream测验">
+<meta property="og:url" content="http://example.com/2019/03/19/%E4%B8%80%E6%AC%A1%E5%85%B3%E4%BA%8EJava8%E4%B8%AD%E7%9A%84Stream%E6%B5%8B%E9%AA%8C/index.html">
+<meta property="og:site_name" content="RxのTreasure Box">
+<meta property="og:description" content="一次关于Java8中的Stream测验前言： ​    在业务代码当中，常常会有多个List或者Map之间的交集差集并集需求，在Java8流式stream出现之前，往往都是以嵌套循环达到目的。此文记录测试在不同写法之间，在串行流与并行流操作之间的性能差异  先上代码： 12345&#x2F;&#x2F; 定义对象class Student &amp;#123;    private String name;    priva">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-19T07:27:56.000Z">
+<meta property="article:modified_time" content="2021-12-10T08:26:45.781Z">
+<meta property="article:author" content="Rx">
+<meta property="article:tag" content="Stream">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="流式迭代">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>一次关于Java8中的Stream测验 - RxのTreasure Box</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Rx</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="一次关于Java8中的Stream测验">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-03-19 15:27" pubdate>
+        2019年3月19日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.2k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      10 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">一次关于Java8中的Stream测验</h1>
+            
+            <div class="markdown-body">
+              <h2 id="一次关于Java8中的Stream测验"><a href="#一次关于Java8中的Stream测验" class="headerlink" title="一次关于Java8中的Stream测验"></a>一次关于Java8中的Stream测验</h2><h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><blockquote>
+<p>​    在业务代码当中，常常会有多个List或者Map之间的交集差集并集需求，在Java8流式stream出现之前，往往都是以嵌套循环达到目的。此文记录测试在不同写法之间，在串行流与并行流操作之间的性能差异</p>
+</blockquote>
+<p><strong>先上代码：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 定义对象</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> String sex;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 初始化两个size为10万的对象集合</span><br><span class="hljs-keyword">int</span> num = <span class="hljs-number">100000</span>;<br><span class="hljs-comment">//男士集合</span><br>List&lt;Student&gt; manList = <span class="hljs-keyword">new</span> ArrayList&lt;Student&gt;()&#123;&#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; num; i++) &#123;<br>    add(<span class="hljs-keyword">new</span> Student(<span class="hljs-string">&quot;旺财&quot;</span>+ ((<span class="hljs-keyword">int</span>) (Math.random() * num)), <span class="hljs-string">&quot;男&quot;</span>+i));<br>  &#125;<br>&#125;&#125;;<br><span class="hljs-comment">//女士集合</span><br>List&lt;Student&gt; womanList = <span class="hljs-keyword">new</span> ArrayList&lt;Student&gt;()&#123;&#123;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; num; i++) &#123;<br>    add(<span class="hljs-keyword">new</span> Student(<span class="hljs-string">&quot;旺财&quot;</span>+ ((<span class="hljs-keyword">int</span>) (Math.random() * num)), <span class="hljs-string">&quot;女&quot;</span>+i));<br>  &#125;<br>&#125;&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="测试需求"><a href="#测试需求" class="headerlink" title="测试需求"></a>测试需求</h3><blockquote>
+<h5 id="查找出有与男同学同名的所有女同学"><a href="#查找出有与男同学同名的所有女同学" class="headerlink" title="查找出有与男同学同名的所有女同学"></a>查找出有与男同学同名的所有女同学</h5></blockquote>
+<h4 id="–-非嵌套分步写法"><a href="#–-非嵌套分步写法" class="headerlink" title="– 非嵌套分步写法"></a>– 非嵌套分步写法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><span class="hljs-comment">// 第一步 把男士集合名字提取出来</span><br>List&lt;String&gt; manNameList=manList.stream().map(Dog::getName).collect(Collectors.toList());<br><span class="hljs-comment">// 第二步 采用filter过滤名称重复</span><br>List&lt;Student&gt; result <br> 			 = womanList.stream().filter(s -&gt; manNameList.contains(s.getName())).collect(Collectors.toList());<br><br></code></pre></td></tr></table></figure>
+
+<h4 id="–-错误嵌套写法"><a href="#–-错误嵌套写法" class="headerlink" title="– 错误嵌套写法"></a>– 错误嵌套写法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;Student&gt; result = womanList.stream().filter( s -&gt; !(manList.stream().map(Student::getName).collect(Collectors.toList())).contains(s.getName())).collect(Collectors.toList());<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="–-正确嵌套写法"><a href="#–-正确嵌套写法" class="headerlink" title="– 正确嵌套写法"></a>– 正确嵌套写法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">List&lt;Student&gt; result = womanList.stream().filter(s -&gt; manList.stream().filter(f -&gt; 	f.getName().equals(s.getName())).findAny().isPresent()).collect(Collectors.toList());<br></code></pre></td></tr></table></figure>
+
+<h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>       <span class="hljs-comment">// 初始化两个size为10万的对象集合</span><br>        <span class="hljs-keyword">int</span> num = <span class="hljs-number">100000</span>;<br>       <span class="hljs-comment">//男士集合</span><br>        List&lt;Student&gt; manList = <span class="hljs-keyword">new</span> ArrayList&lt;Student&gt;()&#123;&#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; num; i++) &#123;<br>                add(<span class="hljs-keyword">new</span> Student(<span class="hljs-string">&quot;旺财&quot;</span>+((<span class="hljs-keyword">int</span>) (Math.random() * num) <span class="hljs-string">&quot;男&quot;</span>+i));<br>            &#125;<br>        &#125;&#125;;<br>       <span class="hljs-comment">//女士集合</span><br>        List&lt;Student&gt; womanList = <span class="hljs-keyword">new</span> ArrayList&lt;Student&gt;()&#123;&#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; num; i++) &#123;<br>                add(<span class="hljs-keyword">new</span> Student(<span class="hljs-string">&quot;旺财&quot;</span>+ ((<span class="hljs-keyword">int</span>) (Math.random() * num)), <span class="hljs-string">&quot;女&quot;</span>+i));<br>            &#125;<br>        &#125;&#125;;<br><br>        <span class="hljs-comment">//非嵌套流式分步写法</span><br>        <span class="hljs-keyword">long</span> l = System.currentTimeMillis();<br>        <span class="hljs-comment">// 第一步 把男士集合名字提取出来</span><br>        List&lt;String&gt; manNameList=manList.stream().map(Student::getName).collect(Collectors.toList());<br>       <span class="hljs-comment">// 第二步 采用filter过滤名称重复</span><br>        List&lt;Student&gt; result<br>                = womanList.stream().filter(s -&gt; manNameList.contains(s.getName())).collect(Collectors.toList());<br>        <span class="hljs-keyword">long</span> l2 = System.currentTimeMillis();<br>        System.out.println(String.format(<span class="hljs-string">&quot;非嵌套流式分步写法 结果：%s  完成time : %s &quot;</span> , result.size(),  (l2-l)));<br><br>       <span class="hljs-comment">//错误嵌套流式迭代</span><br>        List&lt;Student&gt; stuList11 = womanList<br>                .stream()<br>                   .filter( s -&gt; !(manList.stream().map(Student::getName).collect(Collectors.toList())).contains(s.getName()))<br>                       .collect(Collectors.toList());<br>        <span class="hljs-keyword">long</span> l3 = System.currentTimeMillis();<br>        System.out.println(String.format(<span class="hljs-string">&quot;错误嵌套流式迭代 结果：%s  完成time : %s &quot;</span> , stuList11.size(),  (l3-l2)));<br><br><br>        <span class="hljs-comment">//正确嵌套流式迭代</span><br>        List&lt;Student&gt; stuList2 = womanList.stream().filter( s -&gt; !manList.stream().filter(f -&gt; f.getName().equals(s.getName())).findAny().isPresent()).collect(Collectors.toList());<br>        <span class="hljs-keyword">long</span> l4 = System.currentTimeMillis();<br>        System.out.println(String.format(<span class="hljs-string">&quot;正确嵌套流式迭代 结果：%s  完成time : %s &quot;</span> , stuList2.size(),  (l4-l3)));<br><br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h3><h4 id="串行流执行结果"><a href="#串行流执行结果" class="headerlink" title="串行流执行结果"></a>串行流执行结果</h4><table>
+<thead>
+<tr>
+<th align="center">执行方式</th>
+<th align="center">执行结果（数量）</th>
+<th align="center">执行时间 （毫秒）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">分步拆分写法</td>
+<td align="center">36726</td>
+<td align="center">56865</td>
+</tr>
+<tr>
+<td align="center">错误嵌套写法</td>
+<td align="center">36726</td>
+<td align="center">175816</td>
+</tr>
+<tr>
+<td align="center">正确嵌套写法</td>
+<td align="center">36726</td>
+<td align="center">93490</td>
+</tr>
+</tbody></table>
+<h4 id="并行流执行结果"><a href="#并行流执行结果" class="headerlink" title="并行流执行结果"></a>并行流执行结果</h4><table>
+<thead>
+<tr>
+<th align="center">执行方式</th>
+<th align="center">执行结果（数量）</th>
+<th align="center">执行时间 （毫秒）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">分步拆分写法</td>
+<td align="center">37041</td>
+<td align="center">16105</td>
+</tr>
+<tr>
+<td align="center">错误嵌套写法</td>
+<td align="center">37041</td>
+<td align="center">66748</td>
+</tr>
+<tr>
+<td align="center">正确嵌套写法</td>
+<td align="center">37041</td>
+<td align="center">35042</td>
+</tr>
+</tbody></table>
+<p>结果综述：</p>
+<p>​    可以看到</p>
+<p>​        执行性能上</p>
+<ol>
+<li>非嵌套的流式是要明显好于嵌套写法的</li>
+<li>盲目的嵌套写法带来的额外性能消耗是巨大的，代码习惯需注意  ⚠️</li>
+<li>并行流操作在性能上是远远大于串行流操作的</li>
+</ol>
+<p>注：由于并行流使用多线程，则一切线程安全问题都应该是需要考虑的问题，如：资源竞争、死锁、事务、可见性等等</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%90%8E%E7%AB%AF/">后端</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Stream/">Stream</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%B5%81%E5%BC%8F%E8%BF%AD%E4%BB%A3/">流式迭代</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/08/11/WireGuard%20%E6%9C%8D%E5%8A%A1%E5%BB%BA%E8%AE%B0%E5%BD%95/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">WireGuard 服务建记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/09/26/%E8%87%AA%E5%BB%BAwindows%E6%BF%80%E6%B4%BB%E6%9C%8D%E5%8A%A1%E5%99%A8/">
+                        <span class="hidden-mobile">自建windows激活服务器</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://imxudaye.github.io" target="_blank" rel="nofollow noopener"><span>RxのTreasure Box</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        蜀ICP备2021026699号
+      </a>
+    </span>
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
