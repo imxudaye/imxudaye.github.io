@@ -24,7 +24,7 @@ class Student {
     private String sex;
 }
 ```
-
+---
 ```java
 // 初始化两个size为10万的对象集合
 int num = 100000;
@@ -44,7 +44,8 @@ List<Student> womanList = new ArrayList<Student>(){{
 
 ### 测试需求
 
-> ##### 查找出有与男同学同名的所有女同学
+>  查找出有与男同学同名的所有女同学
+
 
 #### 	-- 非嵌套分步写法
 
@@ -142,7 +143,7 @@ List<Student> result = womanList.stream().filter(s -> manList.stream().filter(f 
 
 
 
-结果综述：
+#### 结果综述：
 
 ​	可以看到
 
